@@ -14,7 +14,8 @@ console.log(new pranoutf8.PranoUtf8String('Hello World!').split(0,4).toString())
 
 console.log(new pranoutf8.PranoUtf8String('Hello World!').split(0,2).toString())
 
-console.log(new pranoutf8.PranoUtf8String('😊').toString())
+console.log("Correct String?    " + new pranoutf8.PranoUtf8String('😊').toString())
+console.log("Correct String?    " + new pranoutf8.PranoUtf8String('😁').toString())
 
 console.log(new pranoutf8.PranoUtf8String('😊😊😊😊😊😊').split(2,4).toString())
 
@@ -25,8 +26,17 @@ console.log(new pranoutf8.PranoUtf8String('😀😃😄😁😆😅😂🤣🥲�
 let unicode_array = new pranoutf8.PranoUtf8String('😀😃😄😁😆😅😂🤣🥲🥹☺️😊😇🙂🙃😉😌😍🥰😘😗😙').UnicodeValues()
 
 //Convert Each element to hex string
-unicode_array.forEach((element, index) => {
-    console.log(element.toString(16))
+let hex_array = unicode_array.map((element, index) => {
+    return element.toString(16)
 })
+
+console.log(hex_array)
+
+let combine_string = "combined with" + new pranoutf8.PranoUtf8String('😀😃😄😁😆😅😂🤣🥲🥹☺️😊😇🙂🙃😉😌😍🥰😘😗😙')
+
+console.log(combine_string)
+
+console.log(hex_array + new pranoutf8.PranoUtf8String('😀😃😄😁😆😅😂🤣🥲🥹☺️😊😇🙂🙃😉😌😍🥰😘😗😙'))
+
 
 // Path: test_string.js

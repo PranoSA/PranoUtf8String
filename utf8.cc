@@ -1,19 +1,35 @@
 #include <napi.h>
 
+/**
+ * @brief
+ * Not Exactly Sure Wht this is supposed to do
+ *
+ * @param env
+ * @param data
+ */
 void Cleanup(napi_env env, void *data)
 {
     delete static_cast<Napi::FunctionReference *>(data);
     // delete static_cast<Napi::FunctionReference *>(arg);
 }
 
+/**
+ * @brief
+ * PranoUtf8String is the custom C++ Class With Methods that
+ * require access to the underlying C++ string representation
+ *
+ * This entails byte level access to a string
+ * Although a class with a buffer could also be used
+ *
+ */
 class PranoUtf8String : public Napi::ObjectWrap<PranoUtf8String>
 {
 public:
-    static Napi::Object Init(Napi::Env env, Napi::Object exports); // Method to initialize the type
-    PranoUtf8String(const Napi::CallbackInfo &info);               // Constructor           // Example Method
-    Napi::Value Split(const Napi::CallbackInfo &info);
-    Napi::Value ToString(const Napi::CallbackInfo &info);
-    static Napi::Object NewInstance(Napi::Env env, Napi::String value);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);      // Method to initialize the type
+    PranoUtf8String(const Napi::CallbackInfo &info);                    // Constructor           // Example Method
+    Napi::Value Split(const Napi::CallbackInfo &info);                  // Split Method That Works on UTF-8 Codepoints
+    Napi::Value ToString(const Napi::CallbackInfo &info);               // Method to get the string value -> This maybe called by JS automatically with concatenation
+    static Napi::Object NewInstance(Napi::Env env, Napi::String value); //
     static Napi::FunctionReference constructor;
     Napi::Value UnicodeValues(const Napi::CallbackInfo &info);
 
@@ -161,7 +177,6 @@ Napi::Value PranoUtf8String::Split(const Napi::CallbackInfo &info)
         // This would mean either ASCII Compliant Character or start of new codepoint
         if ((this->value_[i] & 0xC0) != 0x80)
         {
-            printf("New Count %d, index %d\n", count, i);
             count++;
         }
 
@@ -184,7 +199,6 @@ Napi::Value PranoUtf8String::Split(const Napi::CallbackInfo &info)
 
         if ((this->value_[i] & 0xC0) != 0x80)
         {
-            printf("New Count %d, index %d\n", count, i);
             count++;
         }
         if (count == (end + 1))
@@ -192,14 +206,6 @@ Napi::Value PranoUtf8String::Split(const Napi::CallbackInfo &info)
             endByteIndex = i;
             break;
         }
-
-        // If either starts with 11 or 01, then it is a new codepoint
-        //  This is because all continuation bits start with 10
-        /* if (((this->value_[i] & 0xB0) == 0xB0) or (this->value_[i] & 0x40 == 0x40)) //
-         {
-             printf("New Count %d, index %d\n", count, i);
-             count++;
-         }*/
     }
 
     // Now Scoot over to the end of the codepoint
@@ -229,8 +235,6 @@ Napi::Value PranoUtf8String::Split(const Napi::CallbackInfo &info)
     }
 
     // std::string substring = this->value_.substr(start, end - start);
-    printf("The value of startByteIndex is: %d\n", startByteIndex);
-    printf("The value of endByteIndex is: %d\n", endByteIndex + numberOfBytes);
     std::string substring = this->value_.substr(startByteIndex, endByteIndex - startByteIndex + numberOfBytes);
 
     // std::cout << "The value of substring is: " << substring << std::endl;
@@ -266,16 +270,7 @@ Napi::FunctionReference PranoUtf8String::constructor;
 /*
 Napi::Object PranoUtf8String::Init(Napi::Env env, Napi::Object exports)
 {
-
-    Napi::Function func = DefineClass(env, "PranoUtf8String", {
-                                                                  InstanceMethod("split", &PranoUtf8String::Split),
-                                                              });
-
-    auto constructor = Napi::Persistent(func);
-    constructor.SuppressDestruct();
-
-    exports.Set("MyObject", func);
-    return exports;
+    Sets  exports , including the constructor??
 }
 */
 Napi::Object PranoUtf8String::Init(Napi::Env env, Napi::Object exports)
@@ -304,6 +299,8 @@ Napi::Object PranoUtf8String::Init(Napi::Env env, Napi::Object exports)
 /**
  * @brief
  * What This Do?
+ *  Call InitAll  with NODE_API_MODULE to set up the exports
+ * This Calls Init to export the class and its methods
  *
  * @param env
  * @param exports
@@ -311,25 +308,17 @@ Napi::Object PranoUtf8String::Init(Napi::Env env, Napi::Object exports)
  */
 Napi::Object InitAll(Napi::Env env, Napi::Object exports)
 {
-    // PranoUtf8String::Init(env, exports);
-    // exports.Set("MyObject", PranoUtf8String::Init(env, exports));
-    // exports.Set("PranoUtf8String", PranoUtf8String::Init(env, exports));
     PranoUtf8String::Init(env, exports);
     return exports;
 }
-
-/**
- * @brief
- * Define a Function That Splits by Code POint of a current PranoUtf8String
- * For Example (3,6) returns codepoints 3 to 6
- * As a new PranoUtf8String
- */
 
 Napi::Value PranoUtf8String::ToString(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
 
     // Return the value of the string -> utf-16 or what??
+    // How is this the correct value ???
+    // printf("Called ToString\n");
     return Napi::String::New(env, this->value_);
 }
 
